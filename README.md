@@ -10,7 +10,7 @@ Requirements
 ------------
 
 - CentOS7
-- Ruby (MRI) 2.0 or 2.1
+- Ruby (MRI) upper 2.0
 - Git
 - MySQL or MariaDB
 - Redis (installed by this role)
