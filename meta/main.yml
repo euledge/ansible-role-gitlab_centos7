@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  author: euledge
+  description: Gitlab running by unicorn and nginx as a frontend and database uses mariadb
+  license: MIT
+  platforms:
+  - name: CentOS
+    versions:
+    - 7
+  categories:
+  - development
+  - system
+  - web

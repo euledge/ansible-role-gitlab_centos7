@@ -1,0 +1,29 @@
+---
+# defaults file for gitlab-centos7
+gitlab_version: v7.12.2
+gitlab_shell_version: v2.6.3
+
+gitlab_user: git
+# Generate password command
+# openssl passwd -salt [some salt] -1 [password]
+# openssl passwd -salt somesalt -1 gitgit
+gitlab_password: $1$somesalt$bro5dWTowct6EwuAqpTU7.
+
+gitlab_ssh_port: 22
+gitlab_relative_root: /
+
+gitlab_hostname: localhost
+gitlab_front_port: 80
+gitlab_https: false
+gitlab_backend_port: 8080
+gitlab_backend_url: "http://localhost:{{ gitlab_backend_port }}{{ gitlab_relative_root }}"
+
+gitlab_db_name: gitlab
+gitlab_db_user: gitlab
+gitlab_db_passwd: gitlab
+
+gitlab_smtp_server:
+gitlab_smtp_port:
+
+nginx_certs_path: /etc/nginx/cert
+nginx_certs_crt: server.crt

@@ -1,0 +1,13 @@
+---
+# tasks file for gitlab-centos7
+
+# mysql
+- name: add MySQL database {{ gitlab_db_name }}
+  mysql_db: db={{ gitlab_db_name }} state=present encoding=utf8 collation=utf8_unicode_ci
+  sudo: yes
+  tags: gitlab
+
+- name: add MySQL server user for localhost
+  mysql_user: user={{ gitlab_db_user }} password={{ gitlab_db_password }} host=localhost state=present priv="{{ gitlab_db_name }}.*:ALL"
+  sudo: yes
+  tags: gitlab

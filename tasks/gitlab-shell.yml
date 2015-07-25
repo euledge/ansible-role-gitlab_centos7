@@ -1,0 +1,27 @@
+---
+# tasks file for gitlab-centos7
+
+- name: Download gitlab-shell
+  git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/{{ gitlab_user }}/gitlab-shell version={{ gitlab_shell_version }}
+  remote_user: git
+  tags: gitlab
+
+- name: Copy config.yml.example to config.yml
+  shell: cp config.yml.example config.yml chdir=/home/{{ gitlab_user }}/gitlab-shell
+  remote_user: git
+  tags: gitlab
+
+- name: Replace config.yml
+  lineinfile: dest=/home/{{ gitlab_user }}/gitlab-shell/config.yml state=present regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: '^gitlab_url', line: "gitlab_url: {{ gitlab_backend_url }}" }
+    - { regexp: 'ca_file',    line: "  ca_file: {{ nginx_certs_path }}/{{ nginx_certs_crt }}" }
+    - { regexp: 'ca_path',    line: "  ca_path: {{ nginx_certs_path }}" }
+    - { regexp: 'self_signed_cert', line: "  self_signed_cert: true" }
+  remote_user: git
+  tags: gitlab
+
+- name: Run Install
+  shell: bin/install chdir=/home/{{ gitlab_user }}/gitlab-shell
+  remote_user: git
+  tags: gitlab

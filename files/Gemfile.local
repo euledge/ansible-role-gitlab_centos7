@@ -1,0 +1,2 @@
+gem 'charlock_holmes', '0.6.9.4'
+gem 'execjs'

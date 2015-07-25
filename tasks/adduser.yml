@@ -1,0 +1,47 @@
+---
+# tasks file for gitlab-centos7
+
+# Add the user 'git'
+- name: Add group 'git'
+  group: name=git state=present
+  sudo: yes
+  tags: gitlab
+
+- name: Add user 'git'
+  user:
+    name: git
+    password: "{{ gitlab_password }}"
+    state: present
+    group: git
+  sudo: yes
+  tags: gitlab
+
+- name: Copy .gitconfig
+  template: src=.gitconfig dest=/home/git/.gitconfig mode=0664
+  sudo: yes
+  tags: gitlab
+
+- name: Add user git /etc/sudoers.d
+  lineinfile: >-
+    dest='/etc/sudoers'
+    state=present
+    regexp='^git'
+    line='git ALL=(ALL) NOPASSWD: ALL'
+  sudo: yes
+  tags: gitlab
+
+# Runnable ansible by user 'git'
+- name: Create ~/.ssh
+  file: path=/home/git/.ssh state=directory owner=git group=git
+  sudo: yes
+  tags: gitlab
+
+- name: Copy ssh_pub_key
+  shell: cp /root/.ssh/authorized_keys /home/git/.ssh/authorized_keys
+  sudo: yes
+  tags: gitlab
+
+- name: Set Permission
+  file: path=/home/git/.ssh/authorized_keys mode=0600 owner=git group=git
+  sudo: yes
+  tags: gitlab

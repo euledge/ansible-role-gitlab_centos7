@@ -1,0 +1,12 @@
+---
+# tasks file for gitlab-centos7
+
+- name: Install redis
+  yum: name=redis enablerepo='remi,epel,base' state=present
+  sudo: yes
+  tags: gitlab
+
+- name: Ensure redis is running automatically at boot time
+  service: name=redis state=started enabled=yes
+  sudo: yes
+  tags: gitlab

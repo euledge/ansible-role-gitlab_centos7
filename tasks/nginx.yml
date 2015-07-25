@@ -1,0 +1,18 @@
+---
+# tasks file for gitlab-centos7
+
+- name: Template nginx/conf.d/location.d/gitlab.conf
+  template: src=nginx_gitlab.conf.j2 dest=/etc/nginx/conf.d/location.d/gitlab.conf mode=0644
+  sudo: yes
+  tags: gitlab
+
+# Add Reverse Proxy Setting into nginx
+- name: Add Setting into nginx
+  lineinfile:
+    dest:   '/etc/nginx/conf.d/rev_proxy.conf'
+    regexp: '^upstream gitlab {\n.*\n}$'
+    state:  present
+    insertbefore: '^server {'
+    line: "upstream gitlab {\n  server unix:/home/git/gitlab/tmp/sockets/gitlab.socket;\n}\n"
+  sudo: yes
+  tags: gitlab

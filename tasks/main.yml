@@ -1,0 +1,53 @@
+---
+# tasks file for gitlab-centos7
+
+- include: adduser.yml
+- include: mariadb.yml
+- include: gitlab-shell.yml
+- include: gitlab.yml
+- include: redis.yml
+- include: nginx.yml
+
+- name: yum clean
+  command: yum clean all
+  sudo: yes
+  tags: gitlab
+
+# Add Firewalld Setting
+- name: Setting Firewalld
+  firewalld: zone=public permanent=true service={{ item.service }} state={{ item.state }}
+  with_items:
+    - { service: http, state: disabled }
+    - { service: https, state: enabled }
+  sudo: yes
+  tags: gitlab
+
+- name: gitlab service unmask
+  command: systemctl unmask gitlab-unicorn.service
+  command: systemctl unmask sidekiq.service
+  sudo: yes
+  tags: gitlab
+
+- name: gitlab service started
+  command: systemctl enable gitlab-unicorn.service
+  command: systemctl enable sidekiq.service
+  command: systemctl start gitlab-unicorn.service
+  command: systemctl start sidekiq.service
+  command: systemctl restart nginx
+  command: systemctl restart firewalld
+  sudo: yes
+  tags: gitlab
+
+- name: wait for the server to come up
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=10
+  tags: gitlab
+
+- name: Remove authorized_key in user git
+  shell: rm -f /home/{{ gitlab_user }}/.ssh/authorized_keys
+  sudo: yes
+  tags: gitlab
+
+- name: Remove authorized_key in user git
+  file: path=/home/{{ gitlab_user }}/.ssh/authorized_keys state=touch owner=git group=git mode=0600
+  sudo: yes
+  tags: gitlab

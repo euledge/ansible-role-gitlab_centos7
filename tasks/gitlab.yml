@@ -1,0 +1,121 @@
+---
+# tasks file for gitlab-centos7
+
+# Add Required Package & Gem
+- name: Install dependency package
+  yum: name={{ item }} enablerepo='remi,epel,base' state=present
+  with_items:
+    - libicu-devel
+    - cmake
+    - nodejs
+    - npm
+  sudo: yes
+  tags: gitlab
+
+# gitlab
+- name: Download gitlab
+  git: repo=https://github.com/gitlabhq/gitlabhq.git dest=/home/{{ gitlab_user }}/gitlab version={{ gitlab_version }} update=no
+  remote_user: git
+
+- name: Copy templates
+  template: src={{ item.src }} dest={{ item.dest }} mode=0664
+  with_items:
+    - src: database.yml.mysql.j2
+      dest: /home/{{ gitlab_user }}/gitlab/config/database.yml
+    - src: .gitconfig
+      dest: /home/{{ gitlab_user }}/.gitconfig
+  remote_user: git
+  tags: gitlab
+
+- name: Copy config/*.example
+  shell: creates={{ item.dest }}  cp {{ item.src }} {{ item.dest }} chdir=/home/{{ gitlab_user }}/gitlab
+  with_items:
+    - src: config/gitlab.yml.example
+      dest: config/gitlab.yml
+    - src: config/unicorn.rb.example
+      dest: config/unicorn.rb
+  remote_user: git
+  tags: gitlab
+
+- name: Set Permission log
+  file: path={{ item }} state=directory owner=git group=git mode=0775
+  with_items:
+    - /home/{{ gitlab_user }}/gitlab/log
+    - /home/{{ gitlab_user }}/gitlab/tmp
+    - /home/{{ gitlab_user }}/gitlab/tmp/pids
+    - /home/{{ gitlab_user }}/gitlab/tmp/sockets
+    - /home/{{ gitlab_user }}/gitlab/public/uploads
+    - /home/{{ gitlab_user }}/gitlab-satellites
+  remote_user: git
+  tags: gitlab
+
+- name: Copy Template config/*
+  template: src={{ item.src }} dest={{ item.dest }} mode=0664
+  with_items:
+    - src: gitlab.yml.j2
+      dest: /home/{{ gitlab_user }}/gitlab/config/gitlab.yml
+    - src: application.rb.j2
+      dest: /home/{{ gitlab_user }}/gitlab/config/application.rb
+    - src: unicorn.rb.j2
+      dest: /home/{{ gitlab_user }}/gitlab/config/unicorn.rb
+    - src: smtp_settings.rb.j2
+      dest: /home/{{ gitlab_user }}/gitlab/config/initializers/smtp_settings.rb
+  remote_user: git
+  tags: gitlab
+
+# Install Bundle
+- name: Insert required gem into Gemfile
+  lineinfile: dest=/home/{{ gitlab_user }}/gitlab/Gemfile state=present insertafter="^gem 'omniauth-github'" line="gem 'omniauth-redmine', :github => 'suer/omniauth-redmine'"
+  remote_user: git
+  tags: gitlab
+
+- name: Copy Gemfile.local
+  copy: src=Gemfile.local dest="/home/{{ gitlab_user }}/gitlab/Gemfile.local"
+  remote_user: git
+  tags: gitlab
+
+- name: Rebuild Gem
+  command: /usr/local/bin/bundle install --path .bundle --no-deployment --without development test postgres aws chdir=/home/{{ gitlab_user }}/gitlab
+  remote_user: git
+  tags: gitlab
+
+- name: Install Bundle
+  shell: /usr/local/bin/bundle install --deployment --without development test postgres aws chdir=/home/{{ gitlab_user }}/gitlab
+  remote_user: git
+  tags: gitlab
+
+# Initialize Database and Activate Advanced Features
+- name: Initialize Database and Activate Advanced Features
+  shell: "export force=yes && /usr/local/bin/bundle exec rake gitlab:setup RAILS_ENV=production chdir=/home/{{ gitlab_user }}/gitlab"
+  remote_user: git
+  tags: gitlab
+
+# Precompile Assets
+- name: Precompile Assets
+  shell: "RAILS_RELATIVE_URL_ROOT='{{ gitlab_relative_root }}' /usr/local/bin/bundle exec rake assets:precompile RAILS_ENV=production chdir=/home/{{ gitlab_user }}/gitlab"
+  remote_user: git
+  tags: gitlab
+
+# Check Application Status
+- name: Check Application Status
+  shell: "/usr/local/bin/bundle exec rake gitlab:env:info RAILS_ENV=production chdir=/home/{{ gitlab_user }}/gitlab"
+  remote_user: git
+  tags: gitlab
+
+# Double-check Application Status
+- name: Double-check Application Status
+  shell: "/usr/local/bin/bundle exec rake gitlab:check RAILS_ENV=production chdir=/home/{{ gitlab_user }}/gitlab"
+  remote_user: git
+  tags: gitlab
+
+# Install Init Script
+- name: Template /etc/systemd/system/sidekiq.service
+  template: src=sidekiq.service.j2 dest=/etc/systemd/system/sidekiq.service mode=0644
+  sudo: yes
+  tags: gitlab
+
+# Install Init Script
+- name: Template /etc/systemd/system/gitlab-unicorn.service
+  template: src=gitlab-unicorn.service.j2 dest=/etc/systemd/system/gitlab-unicorn.service mode=0644
+  sudo: yes
+  tags: gitlab
