@@ -14,7 +14,7 @@ Requirements
 - Git
 - MySQL or MariaDB
 - Redis (installed by this role)
-- nginx (installed by this role)
+- nginx
 
 Role Variables
 --------------
