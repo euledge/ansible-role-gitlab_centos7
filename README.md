@@ -23,16 +23,12 @@ The role uses the following variables, that you can also override:
 
 * `gitlab_hostname` - override to set the name of the virtual host, also used for email
 * `gitlab_branch` - gitlab branch to checkout
-* `gitlab_shell_version` - gitlab shell version to checkout
-* `gitlab_user` - system user that's needed for ssh access
-* `gitlab_ssh_port` - override if using different port for ssh (22 by default)
 * `gitlab_version` - gitlab version to checkout
 * `gitlab_shell_version` - gitlab shell version to checkout
 * `gitlab_user` - gitlab user (git by default)
 * `gitlab_password` - gitlab password
 * `gitlab_ssh_port` - gitlab port for ssh (22 by default)
 * `gitlab_relative_root` - use sub directory access for gitlab
-* `gitlab_hostname` - override to set the name of the virtual host, also used for email
 * `gitlab_front_port` - port used for nginx (80 by default)
 * `gitlab_backend_port` - port used for unicorn (8080 by default)
 * `gitlab_backend_url` - url used for unicorn (http://localhost by default)
