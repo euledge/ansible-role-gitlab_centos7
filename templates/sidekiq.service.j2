@@ -1,0 +1,27 @@
+#####################################################
+#
+# GitLab version    : 5.x - 7.x
+# Contributors      : davispuh, mtorromeo, axilleas, boeserwolf91, Stefan Tatschner (rumpelsepp)
+# Downloaded from   : https://gitlab.com/gitlab-org/gitlab-recipes/tree/master/init/systemd
+#
+####################################################
+
+[Unit]
+Description=GitLab Sidekiq Worker
+Requires=redis.service
+Wants=mysqld.service postgresql.service
+After=redis.service mysqld.service postgresql.service
+
+[Service]
+Type=forking
+User=git
+WorkingDirectory=/home/git/gitlab
+Environment=RAILS_ENV=production
+SyslogIdentifier=gitlab-sidekiq
+PIDFile=/home/git/gitlab/tmp/pids/sidekiq.pid
+
+ExecStart=/usr/local/bin/bundle exec "sidekiq -d -q post_receive -q mailer -q system_hook -q project_web_hook -q gitlab_shell -q common -q default -e production -P tmp/pids/sidekiq.pid -d -L log/sidekiq.log >> log/sidekiq.log 2>&1"
+ExecStop=/usr/local/bin/bundle exec "sidekiqctl stop /home/git/gitlab/tmp/pids/sidekiq.pid >> /home/git/gitlab/log/sidekiq.log 2>&1"
+
+[Install]
+WantedBy=multi-user.target
