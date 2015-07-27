@@ -22,7 +22,6 @@ Role Variables
 The role uses the following variables, that you can also override:
 
 * `gitlab_hostname` - override to set the name of the virtual host, also used for email
-* `gitlab_branch` - gitlab branch to checkout
 * `gitlab_version` - gitlab version to checkout
 * `gitlab_shell_version` - gitlab shell version to checkout
 * `gitlab_user` - gitlab user (git by default)
